@@ -3,47 +3,79 @@ package us.raudi.printdf;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.printing.Orientation;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 
 public class PrintDF {
 
 	public static void main(String[] args) {
+		String dir = ".";
 		
-		String file = args[0];
+		if(args.length > 0)
+			dir = args[0];
 		
+		ArrayList<File> files = getAllPdfs(dir);
+		
+		for(File f : files) {
+			createBooklet(f);
+		}
+		
+		System.out.println("Done!");
+	}
+	
+	private static void createBooklet(File f) {
 		try {
-			PDDocument document = PDDocument.load(new File(file));
+			PDDocument document = PDDocument.load(f);
 			
 			if (document.isEncrypted()) {
 				System.err.println("Error: Encrypted documents are not supported!");
 				System.exit(1);
 			}
-			
+			PageSize a4 = StandardSize.A4.getPageSize();
+			a4.setOrientation(Orientation.LANDSCAPE);
+			BookletMaker.setSizeOverride(a4);			
 			BookletMaker.setScale(2);
 			PDDocument booklet = BookletMaker.make(document);
 			BookletRotater.flip(booklet, PageSelector.pagesEven(booklet));
 			
-			booklet.save("Output.pdf");
-			System.out.println("Done!");
+			
+			booklet.save( f.getName().replaceAll(".pdf", "_booklet.pdf") );
+			System.out.println("Converted: " + f.getName());
+			document.close();
 		}
 		catch(IOException e) {
 			e.printStackTrace();
 		}
-		
-
 	}
 	
+	
+	private static ArrayList<File> getAllPdfs(String path){
+		ArrayList<File> files = new ArrayList<>();
+		
+		File dir = new File(path);
+		File[] filesList = dir.listFiles();
+		for (File file : filesList) {
+		    if (file.isFile()) {
+		        String name = file.getName();
+		        if(name.contains(".pdf") && !name.contains("_booklet")) {
+		        	files.add(file);
+		        }
+		    }
+		}
+		return files;
+	}
 	
 	
 	public static PDImageXObject pageToImage(PDDocument doc, int page, int scale) throws IOException {
 		// return empty pages if page number excedes number of pages
 		if(page >= doc.getNumberOfPages()) 
-			return JPEGFactory.createFromImage(doc, new BufferedImage(1,1,1));
+			return null;
 		
 		PDFRenderer pdfRenderer = new PDFRenderer(doc);
 		BufferedImage bim = pdfRenderer.renderImage(page, scale);
