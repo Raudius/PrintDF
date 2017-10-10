@@ -13,7 +13,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 
 
 public class PrintDF {
-
+	
 	public static void main(String[] args) {
 		String dir = ".";
 		
@@ -23,13 +23,13 @@ public class PrintDF {
 		ArrayList<File> files = getAllPdfs(dir);
 		
 		for(File f : files) {
-			createBooklet(f);
+			createBooklet(f, new BookletSettings());
 		}
 		
 		System.out.println("Done!");
 	}
 	
-	private static void createBooklet(File f) {
+	public static void createBooklet(File f, BookletSettings setts) {
 		try {
 			PDDocument document = PDDocument.load(f);
 			
@@ -37,16 +37,22 @@ public class PrintDF {
 				System.err.println("Error: Encrypted documents are not supported!");
 				System.exit(1);
 			}
-			PageSize a4 = StandardSize.A4.getPageSize();
-			a4.setOrientation(Orientation.LANDSCAPE);
-			BookletMaker.setSizeOverride(a4);			
-			BookletMaker.setScale(2);
+			
+			PageSize size = setts.getSize().getPageSize();
+			size.setOrientation(Orientation.LANDSCAPE);
+			
+			BookletMaker.setSizeOverride(size);			
+			BookletMaker.setScale(setts.getScale());
+			
 			PDDocument booklet = BookletMaker.make(document);
-			BookletRotater.flip(booklet, PageSelector.pagesEven(booklet));
 			
+			if(setts.isRotateEvens())
+				BookletRotater.flip(booklet, PageSelector.pagesEven(booklet));
 			
-			booklet.save( f.getName().replaceAll(".pdf", "_booklet.pdf") );
-			System.out.println("Converted: " + f.getName());
+			String name = setts.getDirectory(f);
+			System.out.println(name);
+
+			booklet.save(name);
 			document.close();
 		}
 		catch(IOException e) {
@@ -83,5 +89,6 @@ public class PrintDF {
 		
 		return img;
 	}
+
 
 }

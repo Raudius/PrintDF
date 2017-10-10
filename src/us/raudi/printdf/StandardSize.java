@@ -28,4 +28,6 @@ public enum StandardSize{
 	public PageSize getPageSize() {
 		return size;
 	}
+	
+	
 }

@@ -22,13 +22,13 @@ public class PageSelector implements Iterable<PDPage> {
 		return br;
 	}
 	
-	public static PageSelector pagesOdd(PDDocument doc) {
-		return pagesSequence(doc, 0, 2);
-	}
-	public static PageSelector pagesEven(PDDocument doc) {
-		return pagesSequence(doc, 1, 2);
-	}
-	
+	/**
+	 * Selects every 'period-th' page starting with 'start'
+	 * @param doc document from which pages are selected
+	 * @param start starting page which is selected
+	 * @param period periodic interval at which pages a selected
+	 * @return
+	 */
 	public static PageSelector pagesSequence(PDDocument doc, int start, int period) {
 		PageSelector br = new PageSelector();
 		
@@ -37,6 +37,15 @@ public class PageSelector implements Iterable<PDPage> {
 		
 		return br;
 	}
+	
+	public static PageSelector pagesOdd(PDDocument doc) {
+		return pagesSequence(doc, 0, 2);
+	}
+	public static PageSelector pagesEven(PDDocument doc) {
+		return pagesSequence(doc, 1, 2);
+	}
+	
+	
 	
 	
 	@Override
