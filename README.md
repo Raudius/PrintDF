@@ -2,7 +2,7 @@
 Small program to convert PDF documents into printable booklets.
 
 ## GUI Program
-[Get the latest release here!](/releases/latest)
+<b>[Get the latest release here!](https://github.com/Raudius/PrintDF/releases/latest)</b>
 
 ![PrintDF GUI Screenshot](Screenshot_1.png)
 
