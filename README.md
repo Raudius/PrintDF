@@ -1,4 +1,5 @@
 # PrintDF
+#### A simple PDF booklet creator. 
 Small program to convert PDF documents into printable booklets.
 
 ## GUI Program
