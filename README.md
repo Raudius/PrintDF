@@ -17,3 +17,5 @@ Small program to convert PDF documents into printable booklets.
 * Additional (+ custom) page sizes
 * Work with inputs that arent of an A(X) page size.
 * Ignore set of input pages when creating the booklet
+* Create folder if it doesn't exist
+* Multi-threadding
