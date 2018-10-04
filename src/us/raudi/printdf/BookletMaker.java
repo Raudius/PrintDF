@@ -1,16 +1,61 @@
 package us.raudi.printdf;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 public class BookletMaker {
 	private static int scale = 1;
 	private static PageSize sizeOverride = null;
+	
+	// This class represents a "sub page" in the output document
+	// n: the page number
+	// right: whether it is the right side of the page
+	private static class Page {
+		public int n;
+		public boolean right;
+		
+		private boolean up = true;
+		
+		public Page(int n, boolean right) {
+			this.n = n;
+			this.right = right;
+		}
+
+		public void next(int max) {
+			right = !right;
+			
+			if(n == max-1 && up) {
+				up = false;
+				return;
+			}
+			
+			if(up) n++;
+			else n--;
+		}
+		
+		@Override
+		public String toString() {
+			return n+1 + (right ? "R" : "L");
+		}
+	}
+	
+	// this class describes the contents of an output pdf page
+	// the right and left values correspond to a page of the input pdf
+	private static class Contents {
+		public int right= Integer.MAX_VALUE, left=Integer.MAX_VALUE;
+		
+		public void setContent(int n, boolean r) {
+			if(r) this.right = n;
+			else this.left = n;
+		}
+	}
 	
 	/**
 	 * Given a pdf document, creates a printable booklet.
@@ -20,25 +65,36 @@ public class BookletMaker {
 	public static PDDocument make(PDDocument doc) {
 		PDDocument booklet = new PDDocument();
 		
-		// "effective pages" defines the effective number of pages in the booklet (including blanks)
-		int effectivePages = doc.getNumberOfPages() + doc.getNumberOfPages() % 4;
-		// "pages" defines the actual number of sides of paper the booklet will use
-		int pages = effectivePages / 2;
+		// out_pages defines the number of pages of the output pdf.
+		int out_pages = (int) Math.ceil(doc.getNumberOfPages() / 2.0);
+		if(out_pages % 2 != 0)
+			out_pages++;
 		
+		// the page defines a position of the booklet pages in output pdf (the first page will always be on the 1st page on the right side)
+		Page page = new Page(0, true);
 		
-		boolean left = false; // smaller page number goes on the left?
+		// for only two pages in input we want both pages to appear side by side.
+		if(doc.getNumberOfPages() == 2) {
+			page.n = 1;
+			page.right = false;
+		}
 		
-		for(int i=0; i<pages; i++) {
-			int page1 = i;
-			int page2 = effectivePages - i - 1;
+		Contents[] contents = new Contents[out_pages];
+		for(int i=0; i<out_pages; i++)
+			contents[i] = new Contents();
+
+		// construct output page contents
+		for(int i=0; i<doc.getNumberOfPages(); i++) {
+			contents[page.n].setContent(i, page.right);
 			
-			PDPage page;
-			if(left) page = createBookPage(doc, page1, page2);
-			else page = createBookPage(doc, page2, page1);
+			System.out.println("Page "+i+" in " + page);
 			
-			booklet.addPage(page);
-			
-			left = !left;
+			page.next(out_pages);
+		}
+		
+		// build pdf fromt content
+		for(Contents c : contents) {
+			booklet.addPage( createBookPage(doc, c.left, c.right) );
 		}
 		
 		return booklet;

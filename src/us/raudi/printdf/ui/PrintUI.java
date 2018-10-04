@@ -9,6 +9,8 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class PrintUI extends Application {
+	
+	public static final String WINDOW_TITLE = "PrintDF";
 
 	UiController controller;
 	@Override
@@ -22,10 +24,10 @@ public class PrintUI extends Application {
 
 		Image img = new Image(getClass().getResource("PrintDF.png").toExternalForm());
 
-		primaryStage.setTitle("PrintDF");
+		primaryStage.setTitle(WINDOW_TITLE);
 		primaryStage.getIcons().add(img);
 		primaryStage.setScene(scene);
-		primaryStage.setResizable(true);
+		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
 
